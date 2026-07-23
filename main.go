@@ -21,6 +21,11 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		return err
 	}
 
+	if err := initializer.RegisterBeforeAuthenticateCustom(account.BeforeAuthenticateCustom); err != nil {
+		logger.Error("Unable to register: %v", err)
+		return err
+	}
+
 	if err := leaderboard.CreateMonthlyLeaderboard(ctx, nk, logger); err != nil {
 		return err
 	}
