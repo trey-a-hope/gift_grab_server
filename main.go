@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"gift-grab-server/controllers/account"
 	"gift-grab-server/controllers/friend"
+	"gift-grab-server/controllers/group"
 	"gift-grab-server/controllers/leaderboard"
 	"time"
 
@@ -35,6 +36,11 @@ func registerRPCS(initializer runtime.Initializer, logger runtime.Logger) error 
 	}
 
 	if err := initializer.RegisterRpc("get_friendship_state", friend.GetFriendshipState); err != nil {
+		logger.Error("Unable to register: %v", err)
+		return err
+	}
+
+	if err := initializer.RegisterRpc("get_group_by_id", group.GetGroupById); err != nil {
 		logger.Error("Unable to register: %v", err)
 		return err
 	}
