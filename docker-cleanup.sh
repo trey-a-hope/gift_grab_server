@@ -87,8 +87,8 @@ validate_yaml_files() {
             bytes=$(wc -c < "$config_file")
             print_status "File info: $lines lines, $bytes bytes"
             
-            # Try to parse YAML with Python (if available)
-            if command -v python3 &> /dev/null; then
+            # Try to parse YAML with Python (if available and PyYAML is installed)
+            if command -v python3 &> /dev/null && python3 -c "import yaml" &> /dev/null; then
                 python_output=$(python3 -c "
 import yaml
 import sys
@@ -108,13 +108,17 @@ except Exception as e:
                     print_warning "File contents with line numbers:"
                     cat -n "$config_file"
                     print_warning "Hidden characters check:"
-                    cat -A "$config_file"
+                    if [ "$(uname)" = "Darwin" ]; then
+                        cat -v "$config_file"
+                    else
+                        cat -A "$config_file"
+                    fi
                     return 1
                 else
                     print_status "$config_file is valid"
                 fi
             else
-                print_warning "Python3 not available, skipping YAML validation"
+                print_warning "Python3 or PyYAML (python3 -c 'import yaml') not available, skipping Python YAML validation"
             fi
         fi
     done
