@@ -45,5 +45,10 @@ func registerRPCS(initializer runtime.Initializer, logger runtime.Logger) error 
 		return err
 	}
 
+	if err := initializer.RegisterRpc("get_group_membership_state", group.GetGroupMembershipState); err != nil {
+		logger.Error("Unable to register: %v", err)
+		return err
+	}
+
 	return nil
 }
