@@ -1,0 +1,4 @@
+services:
+  nakama:
+    environment:
+      - CLERK_JWKS_URL=https://clerk.gift-grab-server.app/.well-known/jwks.json
