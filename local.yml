@@ -11,4 +11,4 @@ social:
     bundle_id: "com.example.giftGrab"
 runtime:
   env:
-    - "ENVIRONMENT=development"
+    - "ENVIRONMENT=production"
