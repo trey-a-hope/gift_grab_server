@@ -1,11 +1,14 @@
+// Package group contains controllers and types for querying and managing Nakama groups.
 package group
 
 import "github.com/heroiclabs/nakama-common/api"
 
+// GroupRequest represents the standard request payload for group operations containing a group ID.
 type GroupRequest struct {
 	GroupId string `json:"group_id"`
 }
 
+// GroupResponse defines a clean, JSON-serializable representation of a Nakama group object.
 type GroupResponse struct {
 	ID          string `json:"id"`
 	CreatorID   string `json:"creator_id"`
@@ -21,6 +24,7 @@ type GroupResponse struct {
 	UpdateTime  string `json:"update_time"`
 }
 
+// NewGroupResponse converts an api.Group object from Nakama's library to a formatted GroupResponse.
 func NewGroupResponse(group *api.Group) GroupResponse {
 	return GroupResponse{
 		ID:          group.Id,
