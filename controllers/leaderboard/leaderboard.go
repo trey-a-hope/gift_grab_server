@@ -1,3 +1,4 @@
+// Package leaderboard initializes and manages leaderboard configurations.
 package leaderboard
 
 import (
@@ -6,6 +7,8 @@ import (
 	"github.com/heroiclabs/nakama-common/runtime"
 )
 
+// CreateMonthlyLeaderboard creates or fetches a monthly leaderboard with descending score order.
+// The leaderboard resets on the 1st of every month at midnight UTC.
 func CreateMonthlyLeaderboard(ctx context.Context, nk runtime.NakamaModule, logger runtime.Logger) error {
 	const id = "monthly_leaderboard"
 	const authoritative = false

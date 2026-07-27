@@ -1,4 +1,6 @@
-package account
+// Package account handles user authentication and account lifecycle events.
+// It integrates Clerk JWT verification and custom authentication logic.
+package auth
 
 import (
 	"context"
@@ -19,6 +21,7 @@ import (
 )
 
 var (
+	// ErrJwtVerification is returned when JWT authentication or verification fails.
 	ErrJwtVerification = runtime.NewError("jwt verification failed", 3)
 
 	jwksMu        sync.RWMutex
@@ -27,13 +30,16 @@ var (
 	jwksFetchedAt time.Time
 )
 
+// jwksCacheTTL defines the duration for which fetched JWKS keys are cached.
 const jwksCacheTTL = 1 * time.Hour
 
+// Claims represents the expected custom JWT claims from Clerk.
 type Claims struct {
 	Id       string `json:"id"`
 	Username string `json:"username"`
 }
 
+// jwk represents a single JSON Web Key (JWK) in RSA format.
 type jwk struct {
 	Kty string `json:"kty"`
 	Kid string `json:"kid"`
@@ -41,10 +47,12 @@ type jwk struct {
 	E   string `json:"e"`
 }
 
+// jwksResponse represents the JSON payload structure returned by a JWKS endpoint.
 type jwksResponse struct {
 	Keys []jwk `json:"keys"`
 }
 
+// fetchJWKS retrieves the JWKS key set from the given URL and parses RSA public keys.
 func fetchJWKS(jwksURL string) (map[string]*rsa.PublicKey, error) {
 	resp, err := http.Get(jwksURL)
 	if err != nil {
@@ -76,6 +84,7 @@ func fetchJWKS(jwksURL string) (map[string]*rsa.PublicKey, error) {
 	return keys, nil
 }
 
+// jwkToRSAPublicKey converts a JSON Web Key structure into a standard RSA public key.
 func jwkToRSAPublicKey(k jwk) (*rsa.PublicKey, error) {
 	nBytes, err := base64.RawURLEncoding.DecodeString(k.N)
 	if err != nil {
@@ -125,6 +134,10 @@ func getKey(jwksURL, kid string) (*rsa.PublicKey, error) {
 	return key, nil
 }
 
+// BeforeAuthenticateCustom is a Nakama hooks middleware that intercepts and validates Clerk custom authentication tokens.
+// It verifies the JWT signature, decodes claims, and overrides the account ID and username with authenticated values from Clerk.
+// BeforeAuthenticateCustom is a Nakama hooks middleware that intercepts and validates Clerk custom authentication tokens.
+// It verifies the JWT signature, decodes claims, and overrides the account ID and username with authenticated values from Clerk.
 func BeforeAuthenticateCustom(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, in *api.AuthenticateCustomRequest) (*api.AuthenticateCustomRequest, error) {
 	env, ok := ctx.Value(runtime.RUNTIME_CTX_ENV).(map[string]string)
 	if !ok {
@@ -133,9 +146,17 @@ func BeforeAuthenticateCustom(ctx context.Context, logger runtime.Logger, db *sq
 		return nil, fmt.Errorf("%w: %s", ErrJwtVerification, errMessage)
 	}
 
-	jwksURL := env["CLERK_JWKS_URL"]
-	if jwksURL == "" {
-		logger.Error("CLERK_JWKS_URL environment variable is not set")
+	// Determine which Clerk JWKS URL based on environment
+	environment := env["ENVIRONMENT"]
+	var jwksURL string
+
+	switch environment {
+	case "development":
+		jwksURL = "https://comic-shiner-17.clerk.accounts.dev/.well-known/jwks.json"
+	case "production":
+		jwksURL = "https://clerk.gift-grab-server.app/.well-known/jwks.json"
+	default:
+		logger.Error("ENVIRONMENT not set or invalid: %s", environment)
 		return nil, ErrJwtVerification
 	}
 
@@ -152,6 +173,7 @@ func BeforeAuthenticateCustom(ctx context.Context, logger runtime.Logger, db *sq
 	return in, nil
 }
 
+// VerifyAndParseJwt parses the JWT token string using the public key fetched from the JWKS URL and extracts Claims.
 func VerifyAndParseJwt(jwksURL string, tokenString string, claims *Claims) error {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {

@@ -11,4 +11,4 @@ social:
     bundle_id: "com.example.giftGrab"
 runtime:
   env:
-    - "CLERK_JWKS_URL=https://comic-shiner-17.clerk.accounts.dev/.well-known/jwks.json"
+    - "ENVIRONMENT=development"

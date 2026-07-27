@@ -1,3 +1,4 @@
+// Package group contains controllers and types for querying and managing Nakama groups.
 package group
 
 import (
