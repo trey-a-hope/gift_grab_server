@@ -1,0 +1,16 @@
+gift-grab-server.app {
+        # 1. Console API calls MUST go to port 7351
+        handle /v2/console* {
+                reverse_proxy localhost:7351
+        }
+
+        # 2. Game client API calls go to port 7350
+        handle /v2* {
+                reverse_proxy localhost:7350
+        }
+
+        # 3. Console UI and static assets fall back to port 7351
+        handle {
+                reverse_proxy localhost:7351
+        }
+}
